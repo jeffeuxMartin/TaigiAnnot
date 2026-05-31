@@ -1,0 +1,10 @@
+﻿utterance_id,split,file_name,speaker_id,intent,user_id,created_at,opt_empty,opt_incomplete,opt_intent_mismatch,opt_weird,weird_note
+train/audio/p001_0001_1_tw.wav,train,p001/0001_1_tw.wav,p001,SOS_CALL,u3,2026-06-01 04:51:35.903904,0,0,0,0,
+train/audio/p001_0002_1_tw.wav,train,p001/0002_1_tw.wav,p001,SOS_CALL,u3,2026-06-01 04:51:40.043735,0,0,0,0,
+train/audio/p001_0004_1_tw.wav,train,p001/0004_1_tw.wav,p001,SOS_CALL,u3,2026-06-01 05:04:51.489805,0,0,0,0,
+train/audio/p001_0005_1_tw.wav,train,p001/0005_1_tw.wav,p001,SOS_CALL,u3,2026-06-01 05:04:54.184792,0,0,0,0,
+train/audio/p001_0006_1_tw.wav,train,p001/0006_1_tw.wav,p001,SOS_CALL,u3,2026-06-01 05:04:56.245241,0,0,0,0,
+train/audio/p001_0008_1_tw.wav,train,p001/0008_1_tw.wav,p001,SOS_CALL,u3,2026-06-01 05:08:39.380900,0,0,0,0,
+val/audio/p021_0144_8_tw.wav,val,p021/0144_8_tw.wav,p021,CANCEL_ALERT,u3,2026-06-01 05:08:41.278033,0,0,0,0,
+val/audio/p021_0145_8_tw.wav,val,p021/0145_8_tw.wav,p021,CANCEL_ALERT,u3,2026-06-01 05:08:42.933054,0,0,0,0,
+val/audio/p021_0146_8_tw.wav,val,p021/0146_8_tw.wav,p021,CANCEL_ALERT,u3,2026-06-01 05:08:44.441046,0,0,0,0,

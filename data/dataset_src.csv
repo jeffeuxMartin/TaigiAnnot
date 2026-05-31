@@ -1,0 +1,23 @@
+﻿utterance_id,split,file_name,speaker_id,intent,transcription_model1,transcription_model2,transcription_model3
+train/audio/p001_0001_1_tw.wav,train,p001/0001_1_tw.wav,p001,SOS_CALL,火警处哦，较紧个哦，有人无？紧来救我！,火氣洩洩的好快點有人嗎快來救我,"蕙叔叔,快點,有人嗎?快點叫啊"
+train/audio/p001_0002_1_tw.wav,train,p001/0002_1_tw.wav,p001,SOS_CALL,有人无？较紧诶啦！阮阿晕倒啊啦！,有人嗎快點啦我們很昏倒了啦,元 més大家好嗎?你們好嗎? 104 00
+train/audio/p001_0003_1_tw.wav,train,p001/0003_1_tw.wav,p001,SOS_CALL,有贼啦！呢，较紧叫警察。,有車啦還一直叫警察,是聽不到哦那邊有嗎勒 又 Americans
+train/audio/p001_0004_1_tw.wav,train,p001/0004_1_tw.wav,p001,SOS_CALL,赶紧来啦！救命哦！流血流足济呢，赶紧叫救护车啦！,their big problem is the inability of the body to operate on the panels 趕快來啦救命喔老虎捉牲口趕快救救護車啦,"我今天來啦,救命喔,老闆賭很多人耶,我今天救救好車啦"
+train/audio/p001_0005_1_tw.wav,train,p001/0005_1_tw.wav,p001,SOS_CALL,我好物件低调诶，紧来救我！救命！,我好怕糊塗快來救我救命,рын奁沙 treasure
+train/audio/p001_0006_1_tw.wav,train,p001/0006_1_tw.wav,p001,SOS_CALL,啊！厝内呢？敢输漏呢？啊，煞关袂吗？,醋蘭的好像酸溜溜的阿末乖一點,"大家好,我是阿姨今天我帶你去吃雞腿雞腿是一種雞肉雞肉是一種雞肉雞肉是一種雞肉"
+train/audio/p001_0007_1_tw.wav,train,p001/0007_1_tw.wav,p001,SOS_CALL,我心脏足痛，紧帮我叫救护车！,我的心臟很痛快幫我叫救護車,"我心中很痛,快幫我救救好車"
+train/audio/p001_0008_1_tw.wav,train,p001/0008_1_tw.wav,p001,SOS_CALL,有人无？斗相共呢啦，好，我予人锁伫外口啦。,有人嗎董事長呢通過荷蘭設立外銷人,ComicsAA
+val/audio/p021_0144_8_tw.wav,val,p021/0144_8_tw.wav,p021,CANCEL_ALERT,你那较贱咯，唔拄好去遇着迄啰劲爆灵，无代志啦，甲取消。,人這麼固執不適合去為了一個警報令沒事了趕快取消,昨天小豐爽 ceiling
+val/audio/p021_0145_8_tw.wav,val,p021/0145_8_tw.wav,p021,CANCEL_ALERT,我无甚物代志啦，你唔用紧张。,我沒事啦你不用緊張,演唱  그걸沒什麼要緊啦
+val/audio/p021_0146_8_tw.wav,val,p021/0146_8_tw.wav,p021,CANCEL_ALERT,啊，免啦啦，阮个人已经来啊。哦，伊我同阿斗相共啊，多谢你啊。,不用了我們的人已經來了他就要慢慢地打算一樣謝謝你了,"muscles不用了,我们的人你会来因为我ito到三肝谢谢你"
+val/audio/p021_0147_8_tw.wav,val,p021/0147_8_tw.wav,p021,CANCEL_ALERT,您拄啊听迄个进步，是我咧测试尔啦。哦，你卖甲当作正经诶，迄是已经无无进步诶关系。,你們剛才聽那個警報是我在你測試他們的你不要把它當作證件那是已經沒有警報的關係,"您剛才聽到的那種叫聲,是我的確實名字,不要當作是正經的,那是沒有叫聲的關係。"
+val/audio/p021_0148_8_tw.wav,val,p021/0148_8_tw.wav,p021,CANCEL_ALERT,好啊啦，无代志啦。,好了啦沒事啦,"好啊,没关系啦"
+val/audio/p021_0149_8_tw.wav,val,p021/0149_8_tw.wav,p021,CANCEL_ALERT,我已经有较好啊，咱拄啊叫个迄落救护车吼，你也将佮注销。,我已經退休比較好了我們剛才交的那種救護車你可以去跟取消,grace est bas wà birire
+val/audio/p021_0150_8_tw.wav,val,p021/0150_8_tw.wav,p021,CANCEL_ALERT,所有嘅进步吼，拢会使停止啊！,所有的警報方案都可以停止了,所有的經貿都可以停止
+test/audio/p002_0001_1_tw.wav,test,p002/0001_1_tw.wav,p002,SOS_CALL,救命哦！紧来救我，斗三工哦，火烧厝啊！,救命啊快來救我倒三天要收房子了,"救命喔,今天救我,到三更了,回小厨啊"
+test/audio/p002_0002_1_tw.wav,test,p002/0002_1_tw.wav,p002,SOS_CALL,緊來哦，阮剛訓倒去啊，有啥人要來甲我斗三工哦？,快點啦我晚上睡倒了有誰要來幫我倒衣服,produção odorudesHow much can I do for this life?.
+test/audio/p002_0003_1_tw.wav,test,p002/0003_1_tw.wav,p002,SOS_CALL,着切头，啥物来甲我斗相干？紧个，紧个去叫警察！,他們七個才要來玩打針竿越來越狡辯越慘,中文字幕提供
+test/audio/p002_0004_1_tw.wav,test,p002/0004_1_tw.wav,p002,SOS_CALL,救命！留足侪花咧，紧来去叫救护车来！,九秒老祖先出手了快點去舊舊好吃來,哪日什麼現在 saber你
+test/audio/p002_0005_1_tw.wav,test,p002/0005_1_tw.wav,p002,SOS_CALL,救命哦！紧来救我！我互物件硩着啊！我惊袂顶动啊！有啥人要来甲我排解？,救命啊快來救我我被東西掉到了我怕不會回頭啊有誰要來跟我拜託,"香蕉,今天秋天,我把東西帶到了我走不上去,有什麼人要來幫我排鎖"
+test/audio/p002_0006_1_tw.wav,test,p002/0006_1_tw.wav,p002,SOS_CALL,阮厝个教书老啊，竟会拿教书关了目。,換手了快速拉拉快速快速拐拐拉,"我們家的高速路啊,快要到高速關口了"
+test/audio/p002_0007_1_tw.wav,test,p002/0007_1_tw.wav,p002,SOS_CALL,我诶，心中足痛诶，紧诶叫救护车！,我的心臟很痛一直哭又好吃,"我心中很痛,快點救護車"

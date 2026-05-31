@@ -1,0 +1,5 @@
+﻿utterance_id,user_id,status,updated_at
+train/audio/p001_0003_1_tw.wav,u3,skipped,2026-06-01 04:51:42.336350
+train/audio/p001_0007_1_tw.wav,u3,skipped,2026-06-01 05:04:58.079938
+val/audio/p021_0147_8_tw.wav,u3,skipped,2026-06-01 05:08:45.358727
+val/audio/p021_0148_8_tw.wav,u3,working,2026-06-01 05:08:45.481495
