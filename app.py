@@ -48,4 +48,4 @@ else:
     st.success("登入成功，目前只測登入保持")
     st.write("目前登入：", st.session_state.username)
 
-    # qc_page()
+    qc_page()
