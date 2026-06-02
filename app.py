@@ -45,4 +45,7 @@ else:
         if st.button("登出", use_container_width=True):
             logout(cookies)
 
-    qc_page()
+    st.success("登入成功，目前只測登入保持")
+    st.write("目前登入：", st.session_state.username)
+
+    # qc_page()
