@@ -23,28 +23,26 @@ def get_next_item():
 
     done_ids = set(
         pd.to_numeric(
-            results.get("item_id", pd.Series(dtype=int)),
+            results.get("utterance_id", pd.Series(dtype=str)),
             errors="coerce",
         )
         .dropna()
-        .astype(int)
+        .astype(str)
     )
 
-    for item_id in source["item_id"]:
-        item_id = int(item_id)
-
-        if item_id not in done_ids:
+    for utterance_id in source["utterance_id"]:
+        if utterance_id not in done_ids:
             return {
-                "item_id": item_id,
+                "utterance_id": utterance_id,
             }
 
     return {
-        "item_id": None,
+        "utterance_id": None,
     }
 
 
 def submit_result(
-    item_id: int,
+    utterance_id: str,
     opt_empty: bool = False,
     opt_incomplete: bool = False,
     opt_intent_mismatch: bool = False,
@@ -52,7 +50,7 @@ def submit_result(
     weird_note: str = "",
 ):
     row = [
-        item_id,
+        utterance_id,
         datetime.now().isoformat(timespec="seconds"),
         int(opt_empty),
         int(opt_incomplete),
@@ -65,7 +63,7 @@ def submit_result(
 
     return {
         "ok": True,
-        "item_id": item_id,
+        "utterance_id": utterance_id,
     }
 
 
