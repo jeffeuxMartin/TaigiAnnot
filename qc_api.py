@@ -1,18 +1,23 @@
 from __future__ import annotations
 
 from datetime import datetime
-from html import escape
 from typing import Any
 
 import pandas as pd
 
 from gsheets_backend import (
+    STATE_SHEET,
     load_source,
     load_state,
     load_results,
     append_state,
     append_result,
+    append_rows,
+    replace_state,
 )
+
+
+STATE_COMPACT_THRESHOLD = None  # Set to an integer to enable automatic compaction of state sheet.
 
 
 def _now() -> str:
@@ -27,19 +32,53 @@ def _latest_state(state: pd.DataFrame) -> pd.DataFrame:
     if state.empty:
         return state
 
-    # Google Sheets rows are already chronological by append order.
     return state.drop_duplicates(subset=["utterance_id"], keep="last")
 
 
-def _done_ids(results: pd.DataFrame) -> set[str]:
-    if results.empty or "utterance_id" not in results.columns:
-        return set()
+def _compact_state_if_needed() -> None:
+    if STATE_COMPACT_THRESHOLD is None:
+        return
 
-    return {
-        _norm_id(x)
-        for x in results["utterance_id"].tolist()
-        if _norm_id(x)
-    }
+    state = load_state()
+
+    if len(state) <= STATE_COMPACT_THRESHOLD:
+        return
+
+    latest = _latest_state(state)
+    compact = latest[latest["status"].map(_norm_id) != "removed"].copy()
+    replace_state(compact)
+
+
+def compact_state_now() -> None:
+    state = load_state()
+
+    if state.empty:
+        return
+
+    latest = _latest_state(state)
+    compact = latest[latest["status"].map(_norm_id) != "removed"].copy()
+    replace_state(compact)
+
+
+def _done_ids(results: pd.DataFrame, state: pd.DataFrame | None = None) -> set[str]:
+    done = set()
+
+    if not results.empty and "utterance_id" in results.columns:
+        done |= {
+            _norm_id(x)
+            for x in results["utterance_id"].tolist()
+            if _norm_id(x)
+        }
+
+    if state is not None and not state.empty:
+        latest = _latest_state(state)
+        done |= {
+            _norm_id(row["utterance_id"])
+            for _, row in latest.iterrows()
+            if _norm_id(row.get("status")) == "done"
+        }
+
+    return done
 
 
 def _state_ids(state: pd.DataFrame, status: str) -> set[str]:
@@ -59,7 +98,7 @@ def _row_to_item(row: pd.Series | dict) -> dict:
     if not isinstance(row, dict):
         row = row.to_dict()
 
-    item = {
+    return {
         "utterance_id": _norm_id(row.get("utterance_id")),
         "split": _norm_id(row.get("split")),
         "file_name": _norm_id(row.get("file_name")),
@@ -70,17 +109,25 @@ def _row_to_item(row: pd.Series | dict) -> dict:
         "transcription_model3": _norm_id(row.get("transcription_model3")),
     }
 
-    return item
+
+def _snapshot():
+    return {
+        "source": load_source(),
+        "state": load_state(),
+        "results": load_results(),
+    }
 
 
 def get_progress() -> dict:
-    source = load_source()
-    state = load_state()
-    results = load_results()
+    snap = _snapshot()
+    source = snap["source"]
+    state = snap["state"]
+    results = snap["results"]
 
-    done = _done_ids(results)
+    done = _done_ids(results, state)
     working = _state_ids(state, "in_progress") - done
     skipped = _state_ids(state, "skipped") - done
+    removed = _state_ids(state, "removed")
 
     source_ids = {
         _norm_id(x)
@@ -88,7 +135,7 @@ def get_progress() -> dict:
         if _norm_id(x)
     }
 
-    fresh_left = len(source_ids - done - working - skipped)
+    fresh_left = len(source_ids - done - working - skipped - removed)
 
     return {
         "fresh_left": fresh_left,
@@ -100,13 +147,15 @@ def get_progress() -> dict:
 
 
 def get_next_item(username: str = "") -> dict | None:
-    source = load_source()
-    state = load_state()
-    results = load_results()
+    snap = _snapshot()
+    source = snap["source"]
+    state = snap["state"]
+    results = snap["results"]
 
-    done = _done_ids(results)
+    done = _done_ids(results, state)
     working = _state_ids(state, "in_progress") - done
     skipped = _state_ids(state, "skipped") - done
+    removed = _state_ids(state, "removed")
 
     # First pass: fresh items only.
     for _, row in source.iterrows():
@@ -115,7 +164,7 @@ def get_next_item(username: str = "") -> dict | None:
         if not utt:
             continue
 
-        if utt in done or utt in working or utt in skipped:
+        if utt in done or utt in working or utt in skipped or utt in removed:
             continue
 
         append_state([
@@ -125,6 +174,7 @@ def get_next_item(username: str = "") -> dict | None:
             _now(),
         ])
 
+        _compact_state_if_needed()
         return _row_to_item(row)
 
     # Second pass: recycle skipped items only when fresh pool is empty.
@@ -134,7 +184,7 @@ def get_next_item(username: str = "") -> dict | None:
         if not utt:
             continue
 
-        if utt in done or utt in working:
+        if utt in done or utt in working or utt in removed:
             continue
 
         if utt not in skipped:
@@ -147,6 +197,7 @@ def get_next_item(username: str = "") -> dict | None:
             _now(),
         ])
 
+        _compact_state_if_needed()
         return _row_to_item(row)
 
     return None
@@ -160,16 +211,21 @@ def skip_item(username: str, utterance_id: str) -> None:
         _now(),
     ])
 
+    _compact_state_if_needed()
+
 
 def submit_result(username: str, item: dict, result: dict) -> None:
-    row = [
-        _norm_id(item.get("utterance_id")),
+    utt = _norm_id(item.get("utterance_id"))
+    ts = _now()
+
+    result_row = [
+        utt,
         _norm_id(item.get("split")),
         _norm_id(item.get("file_name")),
         _norm_id(item.get("speaker_id")),
         _norm_id(item.get("intent")),
         username,
-        _now(),
+        ts,
         int(bool(result.get("opt_empty", False))),
         int(bool(result.get("opt_incomplete", False))),
         int(bool(result.get("opt_intent_mismatch", False))),
@@ -177,16 +233,30 @@ def submit_result(username: str, item: dict, result: dict) -> None:
         _norm_id(result.get("weird_note")),
     ]
 
-    append_result(row)
+    # One logical button action: append result + append done state.
+    # Google Sheets still receives two sheet operations, but the QC layer calls one function.
+    append_result(result_row)
 
     append_state([
-        _norm_id(item.get("utterance_id")),
+        utt,
         username,
         "done",
         _now(),
     ])
 
+    _compact_state_if_needed()
+
+
+def remove_state(username: str, utterance_id: str) -> None:
+    append_state([
+        _norm_id(utterance_id),
+        username,
+        "removed",
+        _now(),
+    ])
+
+    _compact_state_if_needed()
+
 
 def audio_url(file_name: str) -> str:
-    # Temporary: pages_qc only displays this string.
     return _norm_id(file_name)

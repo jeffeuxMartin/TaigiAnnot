@@ -6,8 +6,6 @@ import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
 
-import streamlit as st
-
 SPREADSHEET_ID = "1CqJKIASylPiza2ftFki4EzwKigj0kheK_fn0nKCSog4"
 
 SOURCE_SHEET = "sourceData"
@@ -95,26 +93,46 @@ def _load_sheet(name: str, columns: list[str]) -> pd.DataFrame:
     return df[columns]
 
 
-@st.cache_data(ttl=15)
 def load_source() -> pd.DataFrame:
     return _load_sheet(SOURCE_SHEET, SOURCE_COLUMNS)
 
 
-@st.cache_data(ttl=5)
 def load_state() -> pd.DataFrame:
     return _load_sheet(STATE_SHEET, STATE_COLUMNS)
 
 
-@st.cache_data(ttl=5)
 def load_results() -> pd.DataFrame:
     return _load_sheet(RESULT_SHEET, RESULT_COLUMNS)
 
 
 def append_state(row: list) -> None:
     _sheet(STATE_SHEET).append_row(row, value_input_option="RAW")
-    st.cache_data.clear()
 
 
 def append_result(row: list) -> None:
     _sheet(RESULT_SHEET).append_row(row, value_input_option="RAW")
-    st.cache_data.clear()
+
+
+def append_rows(sheet_name: str, rows: list[list]) -> None:
+    if not rows:
+        return
+
+    _sheet(sheet_name).append_rows(rows, value_input_option="RAW")
+
+
+def replace_state(df: pd.DataFrame) -> None:
+    """Replace currState with header + provided rows."""
+    ws = _sheet(STATE_SHEET)
+    ws.clear()
+
+    rows = [STATE_COLUMNS]
+
+    if df is not None and not df.empty:
+        clean = df.copy()
+        for col in STATE_COLUMNS:
+            if col not in clean.columns:
+                clean[col] = ""
+        clean = clean[STATE_COLUMNS].fillna("")
+        rows.extend(clean.astype(str).values.tolist())
+
+    ws.update(rows, value_input_option="RAW")
