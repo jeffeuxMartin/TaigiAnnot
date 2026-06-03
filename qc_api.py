@@ -1,151 +1,192 @@
 from __future__ import annotations
 
+from datetime import datetime
+from html import escape
 from typing import Any
 
 import pandas as pd
 
-# data_api.py is expected to be a thin alias, e.g.
-# from data_api__v3__gsheets import *
-import data_api as api
+from gsheets_backend import (
+    load_source,
+    load_state,
+    load_results,
+    append_state,
+    append_result,
+)
 
 
-def _coerce_int(value: Any) -> int | None:
-    try:
-        if value is None:
-            return None
-        return int(value)
-    except Exception:
-        return None
+def _now() -> str:
+    return datetime.now().isoformat(sep=" ", timespec="microseconds")
 
 
-def _row_to_item(row: dict) -> dict:
-    item_id = _coerce_int(row.get("item_id"))
+def _norm_id(value: Any) -> str:
+    return str(value or "").strip()
 
-    item = dict(row)
-    item["item_id"] = item_id
-    item.setdefault("utterance_id", str(item_id) if item_id is not None else "")
-    item.setdefault("file_name", str(item.get("utterance_id", item_id or "")))
-    item.setdefault("split", "")
-    item.setdefault("speaker_id", "")
-    item.setdefault("intent", "")
 
-    item.setdefault("transcription_model1", "")
-    item.setdefault("transcription_model2", "")
-    item.setdefault("transcription_model3", "")
+def _latest_state(state: pd.DataFrame) -> pd.DataFrame:
+    if state.empty:
+        return state
+
+    # Google Sheets rows are already chronological by append order.
+    return state.drop_duplicates(subset=["utterance_id"], keep="last")
+
+
+def _done_ids(results: pd.DataFrame) -> set[str]:
+    if results.empty or "utterance_id" not in results.columns:
+        return set()
+
+    return {
+        _norm_id(x)
+        for x in results["utterance_id"].tolist()
+        if _norm_id(x)
+    }
+
+
+def _state_ids(state: pd.DataFrame, status: str) -> set[str]:
+    if state.empty:
+        return set()
+
+    latest = _latest_state(state)
+
+    return {
+        _norm_id(row["utterance_id"])
+        for _, row in latest.iterrows()
+        if _norm_id(row.get("status")) == status
+    }
+
+
+def _row_to_item(row: pd.Series | dict) -> dict:
+    if not isinstance(row, dict):
+        row = row.to_dict()
+
+    item = {
+        "utterance_id": _norm_id(row.get("utterance_id")),
+        "split": _norm_id(row.get("split")),
+        "file_name": _norm_id(row.get("file_name")),
+        "speaker_id": _norm_id(row.get("speaker_id")),
+        "intent": _norm_id(row.get("intent")),
+        "transcription_model1": _norm_id(row.get("transcription_model1")),
+        "transcription_model2": _norm_id(row.get("transcription_model2")),
+        "transcription_model3": _norm_id(row.get("transcription_model3")),
+    }
 
     return item
 
 
-def _minimal_item(item_id: int | None) -> dict | None:
-    if item_id is None:
-        return None
+def get_progress() -> dict:
+    source = load_source()
+    state = load_state()
+    results = load_results()
 
-    return {
-        "item_id": item_id,
-        "utterance_id": str(item_id),
-        "file_name": str(item_id),
-        "split": "",
-        "speaker_id": "",
-        "intent": "",
-        "transcription_model1": "",
-        "transcription_model2": "",
-        "transcription_model3": "",
+    done = _done_ids(results)
+    working = _state_ids(state, "in_progress") - done
+    skipped = _state_ids(state, "skipped") - done
+
+    source_ids = {
+        _norm_id(x)
+        for x in source["utterance_id"].tolist()
+        if _norm_id(x)
     }
 
-
-def _lookup_source_item(item_id: int | None) -> dict | None:
-    if item_id is None:
-        return None
-
-    # data_api__v3__gsheets imports load_source from gsheets_backend,
-    # so data_api.py may expose it through `from ... import *`.
-    load_source = getattr(api, "load_source", None)
-
-    if load_source is None:
-        return _minimal_item(item_id)
-
-    try:
-        source = load_source()
-    except Exception:
-        return _minimal_item(item_id)
-
-    if source is None or len(source) == 0 or "item_id" not in source.columns:
-        return _minimal_item(item_id)
-
-    ids = pd.to_numeric(source["item_id"], errors="coerce")
-    matched = source.loc[ids == item_id]
-
-    if matched.empty:
-        return _minimal_item(item_id)
-
-    return _row_to_item(matched.iloc[0].to_dict())
-
-
-def get_progress() -> dict:
-    progress = api.get_progress()
-
-    # pages_qc expects old-style keys.
-    if {"fresh_left", "skipped", "working"} <= set(progress.keys()):
-        return progress
+    fresh_left = len(source_ids - done - working - skipped)
 
     return {
-        "fresh_left": progress.get("remaining", 0),
-        "skipped": progress.get("skipped", 0),
-        "working": progress.get("working", 0),
-        "done": progress.get("done", 0),
-        "total": progress.get("total", 0),
+        "fresh_left": fresh_left,
+        "skipped": len(skipped),
+        "working": len(working),
+        "done": len(done),
+        "total": len(source_ids),
     }
 
 
 def get_next_item(username: str = "") -> dict | None:
-    data = api.get_next_item()
+    source = load_source()
+    state = load_state()
+    results = load_results()
 
-    if data is None:
-        return None
+    done = _done_ids(results)
+    working = _state_ids(state, "in_progress") - done
+    skipped = _state_ids(state, "skipped") - done
 
-    item_id = _coerce_int(data.get("item_id"))
+    # First pass: fresh items only.
+    for _, row in source.iterrows():
+        utt = _norm_id(row.get("utterance_id"))
 
-    if item_id is None:
-        return None
+        if not utt:
+            continue
 
-    return _lookup_source_item(item_id)
+        if utt in done or utt in working or utt in skipped:
+            continue
+
+        append_state([
+            utt,
+            username,
+            "in_progress",
+            _now(),
+        ])
+
+        return _row_to_item(row)
+
+    # Second pass: recycle skipped items only when fresh pool is empty.
+    for _, row in source.iterrows():
+        utt = _norm_id(row.get("utterance_id"))
+
+        if not utt:
+            continue
+
+        if utt in done or utt in working:
+            continue
+
+        if utt not in skipped:
+            continue
+
+        append_state([
+            utt,
+            username,
+            "in_progress",
+            _now(),
+        ])
+
+        return _row_to_item(row)
+
+    return None
 
 
 def skip_item(username: str, utterance_id: str) -> None:
-    item_id = _coerce_int(utterance_id)
-
-    if item_id is None:
-        return
-
-    # v3 has no state/skip table yet.
-    # Mark skipped as a result row so /next will advance.
-    api.submit_result(
-        item_id=item_id,
-        opt_empty=False,
-        opt_incomplete=False,
-        opt_intent_mismatch=False,
-        opt_weird=True,
-        weird_note="__SKIP__",
-    )
+    append_state([
+        _norm_id(utterance_id),
+        username,
+        "skipped",
+        _now(),
+    ])
 
 
 def submit_result(username: str, item: dict, result: dict) -> None:
-    item_id = _coerce_int(item.get("item_id") or item.get("utterance_id"))
+    row = [
+        _norm_id(item.get("utterance_id")),
+        _norm_id(item.get("split")),
+        _norm_id(item.get("file_name")),
+        _norm_id(item.get("speaker_id")),
+        _norm_id(item.get("intent")),
+        username,
+        _now(),
+        int(bool(result.get("opt_empty", False))),
+        int(bool(result.get("opt_incomplete", False))),
+        int(bool(result.get("opt_intent_mismatch", False))),
+        int(bool(result.get("opt_weird", False))),
+        _norm_id(result.get("weird_note")),
+    ]
 
-    if item_id is None:
-        raise ValueError(f"Cannot submit item without numeric item_id: {item!r}")
+    append_result(row)
 
-    api.submit_result(
-        item_id=item_id,
-        opt_empty=bool(result.get("opt_empty", False)),
-        opt_incomplete=bool(result.get("opt_incomplete", False)),
-        opt_intent_mismatch=bool(result.get("opt_intent_mismatch", False)),
-        opt_weird=bool(result.get("opt_weird", False)),
-        weird_note=result.get("weird_note", "") or "",
-    )
+    append_state([
+        _norm_id(item.get("utterance_id")),
+        username,
+        "done",
+        _now(),
+    ])
 
 
 def audio_url(file_name: str) -> str:
-    # For this temporary cloud test, only display the URL/text.
-    # Replace this later with HF URL construction or wave/audio integration.
-    return str(file_name or "")
+    # Temporary: pages_qc only displays this string.
+    return _norm_id(file_name)
