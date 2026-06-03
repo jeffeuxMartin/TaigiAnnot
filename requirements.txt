@@ -2,3 +2,7 @@ streamlit
 streamlit-cookies-manager
 requests
 pandas
+fastapi
+uvicorn
+gspread
+google-auth
