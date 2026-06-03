@@ -102,11 +102,13 @@ def render_item(item: dict, username: str) -> None:
     """, unsafe_allow_html=True)
 
     url = qc_api.audio_url(item.get("file_name", ""))
+    st.caption("Audio URL")
     try:
         components.html(wavesurfer_html(url, uid=f"qc_{abs(hash(item.get('utterance_id', '')))}"), height=220)
     except Exception as e:
         st.warning(f"波形載入失敗：{e!r}")
         st.audio(url)
+    st.code(url or "（目前沒有音檔網址）", language="text")
 
     opt_empty = st.checkbox("a. 空音檔", key=f"empty_{item['utterance_id']}")
     opt_incomplete = st.checkbox("b. 錄音不完全", key=f"incomplete_{item['utterance_id']}")
