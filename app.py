@@ -1,12 +1,13 @@
 import streamlit as st
 st.write("Streamlit version:", st.__version__)
 from streamlit_cookies_manager import EncryptedCookieManager
+st.write("streamlit-cookies-manager version:", EncryptedCookieManager.__version__)
 
 from auth import USERS, init_session_state, restore_login_from_cookie, login, logout
 from pages_qc import qc_page
 
 st.set_page_config(
-    page_title="AA!!台語音訊標註!!",
+    page_title="臺語音訊標註",
     page_icon="🎧",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -45,8 +46,5 @@ else:
     with c2:
         if st.button("登出", use_container_width=True):
             logout(cookies)
-
-    st.success("登入成功，目前只測登入保持")
-    st.write("目前登入：", st.session_state.username)
 
     qc_page()

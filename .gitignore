@@ -1,4 +1,4 @@
 .streamlit/secrets.toml
 service_account.json
-__pychache__/**
+__pychache__
 .venv
