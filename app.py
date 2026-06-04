@@ -1,4 +1,5 @@
 import streamlit as st
+st.write("Streamlit version:", st.__version__)
 from streamlit_cookies_manager import EncryptedCookieManager
 
 from auth import USERS, init_session_state, restore_login_from_cookie, login, logout
