@@ -97,24 +97,29 @@ def _load_sheet(name: str, columns: list[str]) -> pd.DataFrame:
     return df[columns]
 
 
+@st.cache_data(ttl=3600)
 def load_source() -> pd.DataFrame:
     return _load_sheet(SOURCE_SHEET, SOURCE_COLUMNS)
 
 
+@st.cache_data(ttl=10)
 def load_state() -> pd.DataFrame:
     return _load_sheet(STATE_SHEET, STATE_COLUMNS)
 
 
+@st.cache_data(ttl=10)
 def load_results() -> pd.DataFrame:
     return _load_sheet(RESULT_SHEET, RESULT_COLUMNS)
 
 
 def append_state(row: list) -> None:
     _sheet(STATE_SHEET).append_row(row, value_input_option="RAW")
+    load_state.clear()  # Clear cache to reflect new state immediately
 
 
 def append_result(row: list) -> None:
     _sheet(RESULT_SHEET).append_row(row, value_input_option="RAW")
+    load_results.clear()  # Clear cache to reflect new result immediately
 
 
 def append_rows(sheet_name: str, rows: list[list]) -> None:
