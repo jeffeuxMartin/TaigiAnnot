@@ -5,6 +5,7 @@ from pathlib import Path
 import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
+import streamlit as st
 
 SPREADSHEET_ID = "1CqJKIASylPiza2ftFki4EzwKigj0kheK_fn0nKCSog4"
 
@@ -65,16 +66,19 @@ def _credentials():
     )
 
 
+@st.cache_resource
 def _gc():
     return gspread.authorize(_credentials())
 
 
+@st.cache_resource
+def _spreadsheet():
+    return _gc().open_by_key(SPREADSHEET_ID)
+
+
+@st.cache_resource
 def _sheet(name: str):
-    return (
-        _gc()
-        .open_by_key(SPREADSHEET_ID)
-        .worksheet(name)
-    )
+    return _spreadsheet().worksheet(name)
 
 
 def _load_sheet(name: str, columns: list[str]) -> pd.DataFrame:
