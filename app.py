@@ -1,7 +1,8 @@
 import streamlit as st
-st.write("Streamlit version:", st.__version__)
+# st.write("Streamlit version:", st.__version__)
 from streamlit_cookies_manager import EncryptedCookieManager
-st.write("streamlit-cookies-manager version:", EncryptedCookieManager.__version__)
+# import streamlit_cookies_manager
+# st.write("streamlit-cookies-manager version:", streamlit_cookies_manager.__version__)
 
 from auth import USERS, init_session_state, restore_login_from_cookie, login, logout
 from pages_qc import qc_page

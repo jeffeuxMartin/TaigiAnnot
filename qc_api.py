@@ -110,6 +110,76 @@ def _row_to_item(row: pd.Series | dict) -> dict:
     }
 
 
+
+def get_item_by_utterance_id(utterance_id: str) -> dict | None:
+    source = load_source()
+    target = _norm_id(utterance_id)
+
+    if source.empty or "utterance_id" not in source.columns:
+        return None
+
+    matched = source[
+        source["utterance_id"].map(_norm_id) == target
+    ]
+
+    if matched.empty:
+        return None
+
+    return _row_to_item(matched.iloc[0])
+
+
+def _result_row_to_result(row: pd.Series | dict) -> dict:
+    if not isinstance(row, dict):
+        row = row.to_dict()
+
+    return {
+        "opt_empty": bool(int(row.get("opt_empty") or 0)),
+        "opt_incomplete": bool(int(row.get("opt_incomplete") or 0)),
+        "opt_intent_mismatch": bool(int(row.get("opt_intent_mismatch") or 0)),
+        "opt_weird": bool(int(row.get("opt_weird") or 0)),
+        "weird_note": _norm_id(row.get("weird_note")),
+    }
+
+
+def get_prev_item(username: str) -> dict | None:
+    results = load_results()
+
+    if results.empty:
+        return None
+
+    if "user_id" not in results.columns or "utterance_id" not in results.columns:
+        return None
+
+    user_results = results[
+        results["user_id"].map(_norm_id) == _norm_id(username)
+    ]
+
+    if user_results.empty:
+        return None
+
+    last_result = user_results.iloc[-1]
+    utterance_id = _norm_id(last_result.get("utterance_id"))
+
+    item = get_item_by_utterance_id(utterance_id)
+
+    if item is None:
+        item = {
+            "utterance_id": utterance_id,
+            "split": _norm_id(last_result.get("split")),
+            "file_name": _norm_id(last_result.get("file_name")),
+            "speaker_id": _norm_id(last_result.get("speaker_id")),
+            "intent": _norm_id(last_result.get("intent")),
+            "transcription_model1": "",
+            "transcription_model2": "",
+            "transcription_model3": "",
+        }
+
+    item["_mode"] = "edit"
+    item["_result"] = _result_row_to_result(last_result)
+
+    return item
+
+
 def _snapshot():
     return {
         "source": load_source(),

@@ -51,19 +51,25 @@ def inject_css() -> None:
     """, unsafe_allow_html=True)
 
 
-def go_prev_item() -> bool:
-    done_stack = st.session_state.get("qc_done_stack", [])
+def go_prev_item(username: str) -> bool:
+    prev_item = qc_api.get_prev_item(username)
 
-    if not done_stack:
+    if prev_item is None:
         st.warning("沒有上一筆。")
         return False
 
-    prev_item = done_stack.pop()
     prev_item["_mode"] = "edit"
-
-    st.session_state.qc_done_stack = done_stack
     st.session_state.qc_item = prev_item
     return True
+
+
+
+def _bool_result(item: dict, key: str) -> bool:
+    return bool(item.get("_result", {}).get(key, False))
+
+
+def _text_result(item: dict, key: str) -> str:
+    return str(item.get("_result", {}).get(key, "") or "")
 
 
 def render_item(item: dict, username: str) -> None:
@@ -102,32 +108,51 @@ def render_item(item: dict, username: str) -> None:
     st.caption("Audio URL")
     st.code(url or "（目前沒有音檔網址）", language="text")
 
-    opt_empty = st.checkbox("a. 空音檔", key=f"empty_{item['utterance_id']}")
-    opt_incomplete = st.checkbox("b. 錄音不完全", key=f"incomplete_{item['utterance_id']}")
-    opt_intent_mismatch = st.checkbox("c. 與 metadata 的 intent 不對應", key=f"intent_{item['utterance_id']}")
-    opt_weird = st.checkbox("d. 其他怪怪的", key=f"weird_{item['utterance_id']}")
+    key_suffix = f"{item['utterance_id']}_{mode}"
+
+    opt_empty = st.checkbox(
+        "a. 空音檔",
+        value=_bool_result(item, "opt_empty"),
+        key=f"empty_{key_suffix}",
+    )
+    opt_incomplete = st.checkbox(
+        "b. 錄音不完全",
+        value=_bool_result(item, "opt_incomplete"),
+        key=f"incomplete_{key_suffix}",
+    )
+    opt_intent_mismatch = st.checkbox(
+        "c. 與 metadata 的 intent 不對應",
+        value=_bool_result(item, "opt_intent_mismatch"),
+        key=f"intent_{key_suffix}",
+    )
+    opt_weird = st.checkbox(
+        "d. 其他怪怪的",
+        value=_bool_result(item, "opt_weird"),
+        key=f"weird_{key_suffix}",
+    )
 
     weird_note = ""
     if opt_weird:
-        weird_note = st.text_area("請描述哪裡怪怪的", key=f"note_{item['utterance_id']}")
+        weird_note = st.text_area(
+            "請描述哪裡怪怪的",
+            value=_text_result(item, "weird_note"),
+            key=f"note_{key_suffix}",
+        )
 
     st.markdown(f'<div class="qc-source">{escape(item.get("utterance_id", ""))}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     if prev:
-        if go_prev_item():
+        if go_prev_item(username):
             st.rerun()
 
     if skip:
         qc_api.skip_item(username, item["utterance_id"])
+        st.session_state.qc_progress = None
         st.session_state.qc_item = None
         st.rerun()
 
     if submit:
-        if mode != "edit":
-            st.session_state.setdefault("qc_done_stack", [])
-            st.session_state.qc_done_stack.append(dict(item))
-
         qc_api.submit_result(
             username,
             item,
@@ -139,6 +164,7 @@ def render_item(item: dict, username: str) -> None:
                 "weird_note": weird_note,
             },
         )
+        st.session_state.qc_progress = None
         st.session_state.qc_item = None
         st.rerun()
 
@@ -147,8 +173,14 @@ def qc_page() -> None:
     inject_css()
     username = st.session_state.get("username", "")
 
-    with st.spinner("載入資料中…"):
-        progress = qc_api.get_progress()
+    st.session_state.setdefault("qc_item", None)
+    st.session_state.setdefault("qc_progress", None)
+
+    if st.session_state.qc_progress is None:
+        with st.spinner("載入資料中…"):
+            st.session_state.qc_progress = qc_api.get_progress()
+
+    progress = st.session_state.qc_progress
 
     st.markdown(f"""
     <div class="qc-top">
@@ -156,9 +188,6 @@ def qc_page() -> None:
       <div>新題 {progress['fresh_left']}｜跳過 {progress['skipped']}｜處理中 {progress['working']}</div>
     </div>
     """, unsafe_allow_html=True)
-
-    st.session_state.setdefault("qc_item", None)
-    st.session_state.setdefault("qc_done_stack", [])
 
     if st.session_state.qc_item is None:
         with st.spinner("領取題目中…"):
