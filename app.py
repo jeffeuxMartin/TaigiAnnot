@@ -5,7 +5,7 @@ from auth import USERS, init_session_state, restore_login_from_cookie, login, lo
 from pages_qc import qc_page
 
 st.set_page_config(
-    page_title="!!台語音訊標註!!",
+    page_title="AA!!台語音訊標註!!",
     page_icon="🎧",
     layout="wide",
     initial_sidebar_state="collapsed",
