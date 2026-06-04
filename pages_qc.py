@@ -3,6 +3,8 @@ from __future__ import annotations
 from html import escape
 
 import streamlit as st
+import streamlit.components.v1 as components
+from wave_demo import wavesurfer_html
 import qc_api
 
 
@@ -105,8 +107,22 @@ def render_item(item: dict, username: str) -> None:
     """, unsafe_allow_html=True)
 
     url = qc_api.audio_url(item.get("file_name", ""))
+
     st.caption("Audio URL")
     st.code(url or "（目前沒有音檔網址）", language="text")
+    st.audio(url)
+
+    try:
+        components.html(
+            wavesurfer_html(
+                url,
+                uid=f"qc_{abs(hash(item.get('utterance_id', '')))}",
+            ),
+            height=220,
+        )
+    except Exception as e:
+        st.warning(f"波形載入失敗：{e!r}")
+        st.audio(url)
 
     key_suffix = f"{item['utterance_id']}_{mode}"
 

@@ -329,4 +329,16 @@ def remove_state(username: str, utterance_id: str) -> None:
 
 
 def audio_url(file_name: str) -> str:
-    return _norm_id(file_name)
+    file_name = _norm_id(file_name).replace("\\", "/").lstrip("/")
+    dst_split, fname = file_name.split("/")
+
+    return (
+        "https://huggingface.co/datasets/"
+        "TaigiSpeech/TaigiSpeech/resolve/main/data/"
+        f"{dst_split}/audio/{fname}"
+    )
+
+#       "https://huggingface.co/datasets/"
+#       "TaigiSpeech/TaigiSpeech/resolve/main/data/test/audio/p002_0001_1_tw.wav"
+# https://huggingface.co/datasets/TaigiSpeech/TaigiSpeech/raw/main/data/test/audio/p002_0001_1_tw.wav
+# https://huggingface.co/datasets/TaigiSpeech/TaigiSpeech/blob/main/data/test/audio/p002_0001_1_tw.wav
