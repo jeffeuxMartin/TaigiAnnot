@@ -54,14 +54,16 @@ def inject_css() -> None:
 
 
 def go_prev_item(username: str) -> bool:
-    prev_item = qc_api.get_prev_item(username)
+    offset = int(st.session_state.get("qc_prev_offset", 0))
+    prev_item = qc_api.get_prev_item(username, offset=offset)
 
     if prev_item is None:
-        st.warning("沒有上一筆。")
+        st.warning("沒有更前面的上一筆。")
         return False
 
     prev_item["_mode"] = "edit"
     st.session_state.qc_item = prev_item
+    st.session_state.qc_prev_offset = offset + 1
     return True
 
 
@@ -165,6 +167,7 @@ def render_item(item: dict, username: str) -> None:
 
     if skip:
         qc_api.skip_item(username, item["utterance_id"])
+        st.session_state.qc_prev_offset = 0
         st.session_state.qc_progress = None
         st.session_state.qc_item = None
         st.rerun()
@@ -181,6 +184,7 @@ def render_item(item: dict, username: str) -> None:
                 "weird_note": weird_note,
             },
         )
+        st.session_state.qc_prev_offset = 0
         st.session_state.qc_progress = None
         st.session_state.qc_item = None
         st.rerun()
@@ -192,6 +196,7 @@ def qc_page() -> None:
 
     st.session_state.setdefault("qc_item", None)
     st.session_state.setdefault("qc_progress", None)
+    st.session_state.setdefault("qc_prev_offset", 0)
 
     if st.session_state.qc_progress is None:
         with st.spinner("載入資料中…"):
@@ -207,6 +212,7 @@ def qc_page() -> None:
     """, unsafe_allow_html=True)
 
     if st.session_state.qc_item is None:
+        st.session_state.qc_prev_offset = 0
         with st.spinner("領取題目中…"):
             st.session_state.qc_item = qc_api.get_next_item(username)
 

@@ -141,7 +141,12 @@ def _result_row_to_result(row: pd.Series | dict) -> dict:
     }
 
 
-def get_prev_item(username: str) -> dict | None:
+def get_prev_item(username: str, offset: int = 0) -> dict | None:
+    """Return the user's previous submitted item.
+
+    offset=0 means the latest submitted result.
+    offset=1 means the one before that, etc.
+    """
     results = load_results()
 
     if results.empty:
@@ -157,7 +162,17 @@ def get_prev_item(username: str) -> dict | None:
     if user_results.empty:
         return None
 
-    last_result = user_results.iloc[-1]
+    try:
+        offset = max(0, int(offset))
+    except Exception:
+        offset = 0
+
+    idx = len(user_results) - 1 - offset
+
+    if idx < 0:
+        return None
+
+    last_result = user_results.iloc[idx]
     utterance_id = _norm_id(last_result.get("utterance_id"))
 
     item = get_item_by_utterance_id(utterance_id)
@@ -176,6 +191,7 @@ def get_prev_item(username: str) -> dict | None:
 
     item["_mode"] = "edit"
     item["_result"] = _result_row_to_result(last_result)
+    item["_prev_offset"] = offset
 
     return item
 
