@@ -36,7 +36,17 @@ def inject_css() -> None:
     <style>
     section.main > div { max-width: 760px; padding-top: .6rem; }
     .qc-card { background:#f7f7f7; border-radius:18px; padding:1rem; box-shadow:0 2px 12px rgba(0,0,0,.08); }
-    .qc-top { display:flex; justify-content:space-between; align-items:center; background:#344354; color:white; padding:.75rem 1rem; border-radius:12px; margin-bottom:.8rem; }
+    .qc-top {
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    background:#344354;
+    color:white;
+    padding:.35rem .7rem;
+    border-radius:10px;
+    margin-bottom:.5rem;
+    font-size:.85rem;
+}
     .qc-emoji { font-size:2rem; text-align:center; }
     .qc-label { color:#777; font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; margin-top:.5rem; }
     .qc-qw { color:#a33; font-weight:700; font-size:1.2rem; }
@@ -82,9 +92,9 @@ def render_item(item: dict, username: str) -> None:
     intent_label = INTENT_LABELS.get(intent, intent)
     mode = item.get("_mode", "current")
 
-    st.markdown('<div class="qc-card">', unsafe_allow_html=True)
+    # st.markdown('<div class="qc-card">', unsafe_allow_html=True)
 
-    c0, c1, c2, c3 = st.columns([1, 1, .8, 1])
+    c0, c1, c2, c3 = st.columns([1, 1, .4, 1])
     with c0:
         prev = st.button("←", use_container_width=True)
     with c1:
@@ -110,9 +120,9 @@ def render_item(item: dict, username: str) -> None:
 
     url = qc_api.audio_url(item.get("file_name", ""))
 
-    st.caption("Audio URL")
-    st.code(url or "（目前沒有音檔網址）", language="text")
-    st.audio(url)
+    # st.caption("Audio URL")
+    # st.code(url or "（目前沒有音檔網址）", language="text")
+    # st.audio(url)
 
     try:
         components.html(
@@ -158,7 +168,7 @@ def render_item(item: dict, username: str) -> None:
         )
 
     st.markdown(f'<div class="qc-source">{escape(item.get("utterance_id", ""))}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # st.markdown('</div>', unsafe_allow_html=True)
 
     if prev:
         if go_prev_item(username):
@@ -206,8 +216,7 @@ def qc_page() -> None:
 
     st.markdown(f"""
     <div class="qc-top">
-      <div>使用者：<b>{escape(username)}</b></div>
-      <div>新題 {progress['fresh_left']}｜跳過 {progress['skipped']}｜處理中 {progress['working']}</div>
+    <div>新題 {progress['fresh_left']}｜跳過 {progress['skipped']}｜處理中 {progress['working']}</div>
     </div>
     """, unsafe_allow_html=True)
 
