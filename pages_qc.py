@@ -160,6 +160,7 @@ def render_item(item: dict, username: str) -> None:
 
     if prev:
         if go_prev_item(username):
+            st.session_state.qc_progress = None
             st.rerun()
 
     if skip:
