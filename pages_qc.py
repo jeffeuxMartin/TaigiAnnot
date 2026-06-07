@@ -158,7 +158,7 @@ def render_item(item: dict, username: str) -> None:
 
         components.html(
             wavesurfer_html(
-                url,
+                audio_src,
                 uid=f"qc_{abs(hash(item.get('utterance_id', '')))}",
             ),
             height=220,
