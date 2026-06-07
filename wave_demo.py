@@ -39,7 +39,7 @@ def wavesurfer_html(audio_url: str, uid: str = "wave", regions=None, height: int
   <audio
     id="audio_{uid}"
     controls
-    src="{audio_url}"
+    
     style="width:100%; margin-top:8px;"
   ></audio>
 </div>
@@ -48,6 +48,9 @@ def wavesurfer_html(audio_url: str, uid: str = "wave", regions=None, height: int
 import WaveSurfer from "https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.esm.js";
 
 const audioEl_{uid} = document.getElementById("audio_{uid}");
+const audioData_{uid} = `{audio_url}`;  /* added for decode */
+audioEl_{uid}.src = audioData_{uid};  /* added for decode */
+
 const shouldAutoplay =
     window.sessionStorage.getItem("taigi_qc_autoplay") === "1";
 
