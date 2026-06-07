@@ -153,6 +153,8 @@ def render_item(item: dict, username: str) -> None:
 
     try:
         audio_src = load_private_audio_as_data_url(url)
+        st.write(audio_src[:30])
+        st.audio(audio_src)
 
         components.html(
             wavesurfer_html(
