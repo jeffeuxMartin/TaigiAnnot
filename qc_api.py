@@ -350,7 +350,8 @@ def audio_url(file_name: str) -> str:
 
     return (
         "https://huggingface.co/datasets/"
-        "TaigiSpeech/TaigiSpeech/resolve/main/data/"
+        # "TaigiSpeech/TaigiSpeech/resolve/main/data/"
+        "jeffeux/taigispeech-tiny/resolve/main/data/"
         f"{dst_split}/audio/{fname}"
     )
 

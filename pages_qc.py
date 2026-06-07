@@ -86,6 +86,24 @@ def _text_result(item: dict, key: str) -> str:
     return str(item.get("_result", {}).get(key, "") or "")
 
 
+import base64
+import requests
+import streamlit as st
+
+@st.cache_data(show_spinner=False)
+def load_private_audio_as_data_url(audio_url: str) -> str:
+    token = st.secrets["HF_TOKEN"]
+
+    r = requests.get(
+        audio_url,
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=30,
+    )
+    r.raise_for_status()
+
+    b64 = base64.b64encode(r.content).decode("ascii")
+    return f"data:audio/wav;base64,{b64}"
+
 def render_item(item: dict, username: str) -> None:
     intent = item.get("intent", "—")
     emoji = INTENT_EMOJI.get(intent, "?")
@@ -125,6 +143,8 @@ def render_item(item: dict, username: str) -> None:
     # st.audio(url)
 
     try:
+        audio_src = load_private_audio_as_data_url(url)
+
         components.html(
             wavesurfer_html(
                 url,
@@ -134,7 +154,12 @@ def render_item(item: dict, username: str) -> None:
         )
     except Exception as e:
         st.warning(f"波形載入失敗：{e!r}")
-        st.audio(url)
+
+        try:
+            audio_src = load_private_audio_as_data_url(url)
+            st.audio(audio_src)
+        except Exception:
+            st.audio(url)
 
     key_suffix = f"{item['utterance_id']}_{mode}"
 

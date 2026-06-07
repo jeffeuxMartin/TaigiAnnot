@@ -1,5 +1,6 @@
 {
     "python.defaultInterpreterPath": "C:\\Users\\ChienChengChen\\Desktop\\TaigiAnnot\\.venv\\Scripts\\python.exe",
     "editor.stickyScroll.enabled": true,
-    "editor.foldingImportsByDefault": true
+    "editor.foldingImportsByDefault": true,
+    "editor.fontSize": 13
 }

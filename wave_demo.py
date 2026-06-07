@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-
+import html
 
 def _safe_uid(uid: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_]", "_", str(uid))
@@ -26,6 +26,7 @@ def wavesurfer_html(audio_url: str, uid: str = "wave", regions=None, height: int
     uid = _safe_uid(uid)
     regions = regions or []
     regions_json = json.dumps(regions, ensure_ascii=False)
+    audio_url = html.escape(audio_url, quote=True)
 
     return f"""
 <div>
