@@ -6,7 +6,15 @@ from streamlit_cookies_manager import EncryptedCookieManager
 
 from auth import USERS, init_session_state, restore_login_from_cookie, login, logout
 from pages_qc import qc_page
+###########
+import streamlit as st
 
+token = st.secrets.get("HF_TOKEN")
+
+st.write("HF_TOKEN detected:", token is not None)
+st.write("HF_TOKEN length:", len(token) if token else 0)
+st.write("HF_TOKEN prefix ok:", token.startswith("hf_") if token else False)
+###############
 st.set_page_config(
     page_title="!!!臺語音訊標註!!!",
     page_icon="🎧",
