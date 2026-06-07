@@ -7,7 +7,15 @@ import streamlit.components.v1 as components
 from wave_demo import wavesurfer_html
 import qc_api
 
+###########
+import streamlit as st
 
+token = st.secrets.get("HF_TOKEN")
+
+st.write("HF_TOKEN detected:", token is not None)
+st.write("HF_TOKEN length:", len(token) if token else 0)
+st.write("HF_TOKEN prefix ok:", token.startswith("hf_") if token else False)
+###############
 INTENT_EMOJI = {
     "SOS_CALL": "🚨",
     "FALL_HELP": "🫏",
